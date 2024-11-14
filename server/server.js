@@ -1,19 +1,21 @@
-// server/server.js
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const path = require('path');
 const cors = require('cors');
 
 const app = express();
-app.use(cors()); // Enable CORS for all origins
+app.use(cors({ origin: 'https://react-yatzy.onrender.com', methods: ['GET', 'POST'] }));
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000', // Allow only the React app origin
+    origin: 'https://react-yatzy.onrender.com',
     methods: ['GET', 'POST']
   }
 });
+
+const PORT = process.env.PORT || 3001;
 
 let gameState = {
   players: [],
@@ -23,27 +25,35 @@ let gameState = {
 };
 
 io.on('connection', (socket) => {
-    console.log('A player connected:', socket.id);
-  
-    socket.on('joinGame', (username) => {
-      gameState.players.push({ id: socket.id, name: username });
-      io.emit('gameState', gameState);
-    });
-  
-    socket.on('rollDice', (selectedDice) => {
-      gameState.dice = gameState.dice.map((die, index) =>
-        selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
-      );
-      io.emit('gameState', gameState); // Update all clients with the new game state
-    });
-  
-    socket.on('disconnect', () => {
-      console.log('A player disconnected:', socket.id);
-      gameState.players = gameState.players.filter((p) => p.id !== socket.id);
-      io.emit('gameState', gameState);
-    });
+  console.log('A player connected:', socket.id);
+
+  socket.on('joinGame', (username) => {
+    gameState.players.push({ id: socket.id, name: username });
+    io.emit('gameState', gameState);
   });
 
-server.listen(3001, () => {
-  console.log('Server is running on http://localhost:3001');
+  socket.on('rollDice', (selectedDice) => {
+    gameState.dice = gameState.dice.map((die, index) =>
+      selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
+    );
+    io.emit('gameState', gameState);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('A player disconnected:', socket.id);
+    gameState.players = gameState.players.filter((p) => p.id !== socket.id);
+    io.emit('gameState', gameState);
+  });
+});
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../client/build')));
+
+// Handle any other routes to return the client’s `index.html`
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+});
+
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
