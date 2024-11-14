@@ -1,4 +1,3 @@
-// client/src/App.js
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import './App.css';
@@ -18,17 +17,25 @@ function App() {
   const [playerScores, setPlayerScores] = useState([{}, {}]);
   const [isRolling, setIsRolling] = useState(false);
 
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+
   useEffect(() => {
     socket.on('gameState', (state) => {
-      console.log('Received game state:', state);
       setGameState(state);
       setDice(state.dice);
       setCurrentPlayer(state.currentTurn);
-      setPlayerScores(state.scores); // Update local player scores from server
+      setPlayerScores(state.scores);
     });
-  
+
+    // Listen for incoming chat messages
+    socket.on('chatMessage', (message) => {
+      setChatMessages((prevMessages) => [...prevMessages, message]);
+    });
+
     return () => {
       socket.off('gameState');
+      socket.off('chatMessage');
     };
   }, []);
 
@@ -40,13 +47,13 @@ function App() {
     if (rollCount < 3 && !scoreSelected && !isRolling && currentPlayer === gameState.players.findIndex(p => p.name === username)) {
       setIsRolling(true);
       setHasRolled(true);
-  
+
       const rollInterval = setInterval(() => {
         setDice(dice.map((die, index) =>
           selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
         ));
       }, 100);
-  
+
       setTimeout(() => {
         clearInterval(rollInterval);
         socket.emit('rollDice', selectedDice);
@@ -62,20 +69,6 @@ function App() {
     );
   };
 
-  useEffect(() => {
-    socket.on('pong', (message) => {
-      console.log(message);
-    });
-
-    return () => {
-      socket.off('pong');
-    };
-  }, []);
-
-  const sendPing = () => {
-    socket.emit('ping');
-  };
-
   const endTurn = () => {
     setRollCount(0);
     setHasRolled(false);
@@ -83,15 +76,21 @@ function App() {
     setSelectedDice([]);
     setDice([0, 0, 0, 0, 0]);
 
-    // Emit endTurn event to server
     socket.emit('endTurn');
   };
 
   const handleScoreSelect = (category, points, playerIndex) => {
     if (hasRolled) {
       setScoreSelected(true);
-      // Emit selected category and points to server to update scores for all players
       socket.emit('scoreSelect', { category, points, playerIndex });
+    }
+  };
+
+  const sendChatMessage = (e) => {
+    e.preventDefault();
+    if (chatInput.trim()) {
+      socket.emit('chatMessage', chatInput);
+      setChatInput('');
     }
   };
 
@@ -111,8 +110,6 @@ function App() {
         {gameState && (
           <>
             <div>Players: {gameState.players.map((p) => p.name).join(', ')}</div>
-            
-            {/* Turn Indicator */}
             <h2
               style={{
                 backgroundColor: isCurrentPlayerTurn ? 'green' : 'red',
@@ -121,9 +118,7 @@ function App() {
                 borderRadius: '5px',
               }}
             >
-              {isCurrentPlayerTurn
-                ? 'Your turn'
-                : `${gameState.players[currentPlayer].name}'s turn`}
+              {isCurrentPlayerTurn ? 'Your turn' : `${gameState.players[currentPlayer].name}'s turn`}
             </h2>
 
             <div className="dice-container">
@@ -153,6 +148,27 @@ function App() {
             </button>
           </>
         )}
+      </div>
+
+      {/* Chat Box */}
+      <div className="chat-container">
+        <h3>Chat Room</h3>
+        <div className="chat-box">
+          {chatMessages.map((msg, index) => (
+            <div key={index} className="chat-message">
+              <strong>{msg.username}:</strong> {msg.text}
+            </div>
+          ))}
+        </div>
+        <form onSubmit={sendChatMessage}>
+          <input
+            type="text"
+            placeholder="Type a message"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+          />
+          <button type="submit">Send</button>
+        </form>
       </div>
 
       <div className="scoreboard-container">
