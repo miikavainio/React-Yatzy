@@ -17,6 +17,7 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3001;
 
+
 let gameState = {
   players: [],
   currentTurn: 0,
@@ -46,14 +47,16 @@ io.on('connection', (socket) => {
   });
 });
 
-// Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../client/build')));
-
-// Handle any other routes to return the client’s `index.html`
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
+
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+app.get('/test', (req, res) => {
+  res.send('Server is working!');
 });
