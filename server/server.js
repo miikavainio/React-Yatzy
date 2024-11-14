@@ -69,19 +69,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('A player disconnected:', socket.id);
     gameState.players = gameState.players.filter((p) => p.id !== socket.id);
-
-    // Check if all players have disconnected
-    if (gameState.players.length === 0) {
-      gameState = {
-        players: [],
-        currentTurn: 0,
-        dice: [0, 0, 0, 0, 0],
-        scores: [{}, {}], // Reset scores for two players
-      };
-      console.log('All players disconnected. Game state reset.');
-    }
-
-    io.emit('gameState', gameState); // Broadcast updated game state
+    io.emit('gameState', gameState); // Broadcast updated player list
   });
 });
 
