@@ -4,7 +4,8 @@ import io from 'socket.io-client';
 import './App.css';
 import Scoreboard from './Scoreboard';
 
-const socket = io('wss://react-yatzy.onrender.com');
+const socket = io('https://react-yatzy.onrender.com');
+
 
 function App() {
   const [gameState, setGameState] = useState(null);
