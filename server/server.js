@@ -30,22 +30,24 @@ io.on('connection', (socket) => {
 
   socket.on('joinGame', (username) => {
     gameState.players.push({ id: socket.id, name: username });
-    io.emit('gameState', gameState);
+    io.emit('gameState', gameState); // Broadcast the updated game state
   });
 
   socket.on('rollDice', (selectedDice) => {
+    // Roll the dice and update gameState
     gameState.dice = gameState.dice.map((die, index) =>
       selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
     );
-    io.emit('gameState', gameState);
+    io.emit('gameState', gameState); // Broadcast the updated game state to all players
   });
 
   socket.on('disconnect', () => {
     console.log('A player disconnected:', socket.id);
     gameState.players = gameState.players.filter((p) => p.id !== socket.id);
-    io.emit('gameState', gameState);
+    io.emit('gameState', gameState); // Update all clients with the new game state
   });
 });
+
 
 app.use(express.static(path.join(__dirname, '../client/build')));
 app.get('*', (req, res) => {

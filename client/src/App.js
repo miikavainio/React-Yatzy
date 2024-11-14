@@ -26,7 +26,8 @@ function App() {
     return () => {
       socket.off('gameState');
     };
-  }, []);
+}, []);
+
 
   const joinGame = () => {
     socket.emit('joinGame', username);
