@@ -4,7 +4,8 @@ import io from 'socket.io-client';
 import './App.css';
 import Scoreboard from './Scoreboard';
 
-const socket = io('https://react-yatzy.onrender.com');
+const socket = io('wss://react-yatzy.onrender.com');
+
 
 function App() {
   const [gameState, setGameState] = useState(null);
@@ -62,6 +63,22 @@ function App() {
     );
   };
 
+
+  useEffect(() => {
+    socket.on('pong', (message) => {
+      console.log(message);
+    });
+  
+    return () => {
+      socket.off('pong');
+    };
+  }, []);
+  
+  const sendPing = () => {
+    socket.emit('ping');
+  };
+  
+
   const endTurn = () => {
     setRollCount(0);
     setHasRolled(false); // Reset the roll status for the next turn
@@ -90,6 +107,8 @@ function App() {
           onChange={(e) => setUsername(e.target.value)}
         />
         <button className="button" onClick={joinGame}>Join Game</button>
+        <button onClick={sendPing}>Ping Server</button>
+
 
         {gameState && (
           <>

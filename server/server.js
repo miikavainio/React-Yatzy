@@ -10,7 +10,7 @@ app.use(cors({ origin: 'https://react-yatzy.onrender.com', methods: ['GET', 'POS
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'https://react-yatzy.onrender.com',
+    origin: '*', // Temporarily allow all origins for debugging
     methods: ['GET', 'POST']
   }
 });
@@ -26,7 +26,10 @@ let gameState = {
 };
 
 io.on('connection', (socket) => {
-  console.log('A player connected:', socket.id);
+  socket.on('ping', () => {
+    console.log('Ping received from', socket.id);
+    io.emit('pong', 'Pong from server');
+  });
 
   socket.on('joinGame', (username) => {
     gameState.players.push({ id: socket.id, name: username });
