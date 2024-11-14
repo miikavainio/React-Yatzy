@@ -1,0 +1,40 @@
+/* client/src/Scoreboard.css */
+
+.scoreboard {
+  width: 100%;
+  max-width: 400px;
+  margin: 20px auto;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #f4f4f9;
+}
+
+.scoreboard h3 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.scoreboard table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.scoreboard th, .scoreboard td {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.scoreboard tbody tr:hover td {
+  background-color: #f1f1f1;
+}
+
+.scoreboard td {
+  font-weight: bold;
+}
+
+.scoreboard tfoot td {
+  font-size: 1.2em;
+}
