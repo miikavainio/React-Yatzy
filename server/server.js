@@ -1,3 +1,4 @@
+// server/server.js
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -10,13 +11,12 @@ app.use(cors({ origin: 'https://react-yatzy.onrender.com', methods: ['GET', 'POS
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*', // Temporarily allow all origins for debugging
+    origin: '*',
     methods: ['GET', 'POST']
   }
 });
 
 const PORT = process.env.PORT || 3001;
-
 
 let gameState = {
   players: [],
@@ -30,30 +30,36 @@ io.on('connection', (socket) => {
 
   socket.on('joinGame', (username) => {
     gameState.players.push({ id: socket.id, name: username });
-    io.emit('gameState', gameState); // Immediately broadcast the updated game state
+    io.emit('gameState', gameState); // Broadcast updated game state
   });
 
   socket.on('rollDice', (selectedDice) => {
+    // Perform dice roll on the server
     gameState.dice = gameState.dice.map((die, index) =>
       selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
     );
-    io.emit('gameState', gameState); // Broadcast the new dice roll to all clients
+
+    console.log('Broadcasting updated game state after dice roll:', gameState);
+    io.emit('gameState', gameState); // Broadcast updated game state to all clients
+  });
+
+  socket.on('endTurn', () => {
+    // Update current turn
+    gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
+    io.emit('gameState', gameState); // Broadcast updated game state
   });
 
   socket.on('disconnect', () => {
     console.log('A player disconnected:', socket.id);
     gameState.players = gameState.players.filter((p) => p.id !== socket.id);
-    io.emit('gameState', gameState); // Broadcast the updated player list after disconnect
+    io.emit('gameState', gameState); // Broadcast updated player list
   });
 });
-
-
 
 app.use(express.static(path.join(__dirname, '../client/build')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
-
 
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

@@ -6,30 +6,30 @@ import Scoreboard from './Scoreboard';
 
 const socket = io('wss://react-yatzy.onrender.com');
 
-
 function App() {
   const [gameState, setGameState] = useState(null);
   const [username, setUsername] = useState('');
-  const [dice, setDice] = useState([0, 0, 0, 0, 0]); // Initialize dice with 0 values
+  const [dice, setDice] = useState([0, 0, 0, 0, 0]);
   const [selectedDice, setSelectedDice] = useState([]);
   const [rollCount, setRollCount] = useState(0);
-  const [hasRolled, setHasRolled] = useState(false); // Track if player has rolled at least once
+  const [hasRolled, setHasRolled] = useState(false);
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [scoreSelected, setScoreSelected] = useState(false);
   const [playerScores, setPlayerScores] = useState([{}, {}]);
-  const [isRolling, setIsRolling] = useState(false); // Track if dice are rolling
+  const [isRolling, setIsRolling] = useState(false);
 
   useEffect(() => {
     socket.on('gameState', (state) => {
-      console.log('Received game state:', state);  // Log to confirm each update
-      setGameState(state); // Update local game state with the server’s latest version
+      console.log('Received game state:', state);
+      setGameState(state);
+      setDice(state.dice); // Update dice with server's dice values
+      setCurrentPlayer(state.currentTurn); // Sync current turn from server
     });
   
     return () => {
       socket.off('gameState');
     };
   }, []);
-  
 
   const joinGame = () => {
     socket.emit('joinGame', username);
@@ -38,23 +38,13 @@ function App() {
   const rollDice = () => {
     if (rollCount < 3 && !scoreSelected && !isRolling) {
       setIsRolling(true);
-      setHasRolled(true); // Mark that the player has rolled at least once
-      const rollInterval = setInterval(() => {
-        setDice(dice.map((die, index) =>
-          selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
-        ));
-      }, 100); // Change dice every 100ms for a shuffle effect
-
-      // After 1 second, settle on the final roll values
-      setTimeout(() => {
-        clearInterval(rollInterval);
-        const finalDice = dice.map((die, index) =>
-          selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
-        );
-        setDice(finalDice);
-        setIsRolling(false); // Set rolling state to false
-        setRollCount(rollCount + 1); // Increment roll count
-      }, 1000); // Roll animation duration: 1 second
+      setHasRolled(true);
+      
+      // Emit selectedDice array to the server
+      socket.emit('rollDice', selectedDice);
+      
+      setRollCount(rollCount + 1);
+      setIsRolling(false);
     }
   };
 
@@ -64,33 +54,33 @@ function App() {
     );
   };
 
-
   useEffect(() => {
     socket.on('pong', (message) => {
       console.log(message);
     });
-  
+
     return () => {
       socket.off('pong');
     };
   }, []);
-  
+
   const sendPing = () => {
     socket.emit('ping');
   };
-  
 
   const endTurn = () => {
     setRollCount(0);
-    setHasRolled(false); // Reset the roll status for the next turn
+    setHasRolled(false);
     setScoreSelected(false);
     setSelectedDice([]);
-    setDice([0, 0, 0, 0, 0]); // Reset dice to 0 values
-    setCurrentPlayer((currentPlayer + 1) % gameState.players.length);
+    setDice([0, 0, 0, 0, 0]);
+
+    // Emit endTurn event to server
+    socket.emit('endTurn');
   };
 
   const handleScoreSelect = (category, points, playerIndex) => {
-    if (hasRolled) { // Only allow scoring if the player has rolled at least once
+    if (hasRolled) {
       setScoreSelected(true);
       const newScores = [...playerScores];
       newScores[playerIndex] = { ...newScores[playerIndex], [category]: points };
@@ -109,7 +99,6 @@ function App() {
         />
         <button className="button" onClick={joinGame}>Join Game</button>
         <button onClick={sendPing}>Ping Server</button>
-
 
         {gameState && (
           <>
@@ -136,12 +125,11 @@ function App() {
         )}
       </div>
 
-      {/* Scoreboard on the right side */}
       <div className="scoreboard-container">
         <Scoreboard
           dice={dice}
           onScoreSelect={handleScoreSelect}
-          isDisabled={!hasRolled || scoreSelected} // Disable scoring if no roll or if score already selected
+          isDisabled={!hasRolled || scoreSelected}
           currentPlayer={currentPlayer}
           players={gameState?.players || []}
           playerScores={playerScores}
