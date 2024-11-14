@@ -28,6 +28,7 @@ function App() {
       setPlayerScores(state.scores);
     });
 
+    // Listen for incoming chat messages
     socket.on('chatMessage', (message) => {
       setChatMessages((prevMessages) => [...prevMessages, message]);
     });
@@ -96,29 +97,7 @@ function App() {
   const isCurrentPlayerTurn = currentPlayer === gameState?.players.findIndex(p => p.name === username);
 
   return (
-    <div className="container">
-      {/* Chat Room on the Left */}
-      <div className="chat-container">
-        <h3>Chat Room</h3>
-        <div className="chat-box">
-          {chatMessages.map((msg, index) => (
-            <div key={index} className="chat-message">
-              <strong>{msg.username}:</strong> {msg.text}
-            </div>
-          ))}
-        </div>
-        <form onSubmit={sendChatMessage} className="chat-form">
-          <input
-            type="text"
-            placeholder="Type a message"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-          />
-          <button type="submit">Send</button>
-        </form>
-      </div>
-
-      {/* Main Game Content on the Right */}
+    <div className="game-container">
       <div className="game-content">
         <h1>Yatzy Game</h1>
         <input
@@ -169,17 +148,38 @@ function App() {
             </button>
           </>
         )}
+      </div>
 
-        <div className="scoreboard-container">
-          <Scoreboard
-            dice={dice}
-            onScoreSelect={handleScoreSelect}
-            isDisabled={!hasRolled || scoreSelected}
-            currentPlayer={currentPlayer}
-            players={gameState?.players || []}
-            playerScores={playerScores}
-          />
+      {/* Chat Box */}
+      <div className="chat-container">
+        <h3>Chat Room</h3>
+        <div className="chat-box">
+          {chatMessages.map((msg, index) => (
+            <div key={index} className="chat-message">
+              <strong>{msg.username}:</strong> {msg.text}
+            </div>
+          ))}
         </div>
+        <form onSubmit={sendChatMessage}>
+          <input
+            type="text"
+            placeholder="Type a message"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+
+      <div className="scoreboard-container">
+        <Scoreboard
+          dice={dice}
+          onScoreSelect={handleScoreSelect}
+          isDisabled={!hasRolled || scoreSelected}
+          currentPlayer={currentPlayer}
+          players={gameState?.players || []}
+          playerScores={playerScores}
+        />
       </div>
     </div>
   );
