@@ -18,40 +18,17 @@ function App() {
   const [playerScores, setPlayerScores] = useState([{}, {}]);
   const [isRolling, setIsRolling] = useState(false);
 
-  // Chat state
-  const [chatMessages, setChatMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-
-  // Determine if it's the logged-in player's turn
-  const isCurrentTurn = gameState && gameState.players[currentPlayer]?.name === username;
-
-  // Function to get the turn display message and style
-  const getTurnMessage = () => {
-    if (isCurrentTurn) {
-      return { message: "Your turn", style: { backgroundColor: 'green', color: 'white', padding: '10px' } };
-    } else {
-      return { message: `${gameState.players[currentPlayer].name}'s turn`, style: { backgroundColor: 'red', color: 'white', padding: '10px' } };
-    }
-  };
-
-  const { message, style } = getTurnMessage();
-
   useEffect(() => {
     socket.on('gameState', (state) => {
+      console.log('Received game state:', state);
       setGameState(state);
       setDice(state.dice);
       setCurrentPlayer(state.currentTurn);
       setPlayerScores(state.scores);
     });
-
-    // Listen for chat messages
-    socket.on('chatMessage', (chatData) => {
-      setChatMessages(prevMessages => [...prevMessages, chatData]);
-    });
-
+  
     return () => {
       socket.off('gameState');
-      socket.off('chatMessage');
     };
   }, []);
 
@@ -60,7 +37,7 @@ function App() {
   };
 
   const rollDice = () => {
-    if (rollCount < 3 && !scoreSelected && !isRolling && isCurrentTurn) {
+    if (rollCount < 3 && !scoreSelected && !isRolling && currentPlayer === gameState.players.findIndex(p => p.name === username)) {
       setIsRolling(true);
       setHasRolled(true);
 
@@ -85,13 +62,16 @@ function App() {
     );
   };
 
+  const sendPing = () => {
+    socket.emit('ping');
+  };
+
   const endTurn = () => {
     setRollCount(0);
     setHasRolled(false);
     setScoreSelected(false);
     setSelectedDice([]);
     setDice([0, 0, 0, 0, 0]);
-
     socket.emit('endTurn');
   };
 
@@ -102,12 +82,19 @@ function App() {
     }
   };
 
-  const sendMessage = () => {
-    if (newMessage.trim()) {
-      socket.emit('chatMessage', newMessage); // Emit the message to the server
-      setNewMessage(''); // Clear input field
+  // Determine if it's the logged-in player's turn
+  const isCurrentTurn = gameState && gameState.players[currentPlayer]?.name === username;
+
+  // Function to get the turn display message and style
+  const getTurnMessage = () => {
+    if (isCurrentTurn) {
+      return { message: "Your turn", style: { backgroundColor: 'green', color: 'white', padding: '10px', borderRadius: '5px' } };
+    } else {
+      return { message: `${gameState.players[currentPlayer].name}'s turn`, style: { backgroundColor: 'red', color: 'white', padding: '10px', borderRadius: '5px' } };
     }
   };
+
+  const { message, style } = getTurnMessage();
 
   return (
     <div className="game-container">
@@ -119,6 +106,7 @@ function App() {
           onChange={(e) => setUsername(e.target.value)}
         />
         <button className="button" onClick={joinGame}>Join Game</button>
+        <button onClick={sendPing}>Ping Server</button>
 
         {gameState && (
           <>
@@ -164,26 +152,6 @@ function App() {
           players={gameState?.players || []}
           playerScores={playerScores}
         />
-      </div>
-
-      {/* Chat Room */}
-      <div className="chat-container">
-        <h3>Chat Room</h3>
-        <div className="chat-messages">
-          {chatMessages.map((chat, index) => (
-            <div key={index} className="chat-message">
-              <strong>{chat.playerName}:</strong> {chat.message}
-            </div>
-          ))}
-        </div>
-        <input
-          type="text"
-          placeholder="Type a message..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-        />
-        <button onClick={sendMessage}>Send</button>
       </div>
     </div>
   );
