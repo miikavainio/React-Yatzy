@@ -1,13 +1,90 @@
 /* App.css */
 
+/* Container to hold chat and game content side by side */
 .container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  gap: 20px;
+  font-family: Arial, sans-serif;
+  height: 90vh; /* Full viewport height */
+}
+
+/* Chat container on the left */
+.chat-container {
+  width: 25%;
+  background-color: #f4f4f4;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.chat-container h3 {
+  margin: 0;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.chat-box {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.chat-message {
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.chat-message strong {
+  color: #333;
+}
+
+.chat-form {
+  display: flex;
+  align-items: center;
+}
+
+.chat-form input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-right: 10px;
+}
+
+.chat-form button {
+  padding: 8px 12px;
+  border-radius: 5px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.chat-form button:hover {
+  background-color: #45a049;
+}
+
+/* Main game content on the right */
+.game-content {
+  width: 70%;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: Arial, sans-serif;
-  padding: 20px;
+  justify-content: center;
 }
 
+/* Existing styles */
 .dice-container {
   display: flex;
   gap: 10px;
@@ -62,26 +139,8 @@
   font-size: 18px;
 }
 
-.game-container {
+.scoreboard-container {
+  width: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 90vh; /* Full viewport height */
-  padding: 20px;
-}
-
-.game-content {
-  /* flex: 1; */
-  max-width: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Center elements horizontally */
-  justify-content: center; /* Center elements vertically */
-  padding-right: 20px;
-}
-
-.scoreboard-container {
-  width: 30%;
-  display: flex;
-  align-items: flex-start; /* Align scoreboard to the top */
 }
