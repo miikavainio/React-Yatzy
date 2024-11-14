@@ -22,7 +22,7 @@ let gameState = {
   players: [],
   currentTurn: 0,
   dice: [0, 0, 0, 0, 0],
-  scores: {},
+  scores: [{}, {}], // Initialize scores for two players
 };
 
 io.on('connection', (socket) => {
@@ -49,6 +49,13 @@ io.on('connection', (socket) => {
     io.emit('gameState', gameState); // Broadcast updated game state
   });
 
+  socket.on('scoreSelect', ({ category, points, playerIndex }) => {
+    if (!gameState.scores[playerIndex][category]) {
+      gameState.scores[playerIndex][category] = points;
+      io.emit('gameState', gameState); // Broadcast updated scores to all clients
+    }
+  });
+  
   socket.on('disconnect', () => {
     console.log('A player disconnected:', socket.id);
     gameState.players = gameState.players.filter((p) => p.id !== socket.id);

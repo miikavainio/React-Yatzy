@@ -22,8 +22,9 @@ function App() {
     socket.on('gameState', (state) => {
       console.log('Received game state:', state);
       setGameState(state);
-      setDice(state.dice); // Update dice with server's dice values
-      setCurrentPlayer(state.currentTurn); // Sync current turn from server
+      setDice(state.dice);
+      setCurrentPlayer(state.currentTurn);
+      setPlayerScores(state.scores); // Update local player scores from server
     });
   
     return () => {
@@ -82,11 +83,11 @@ function App() {
   const handleScoreSelect = (category, points, playerIndex) => {
     if (hasRolled) {
       setScoreSelected(true);
-      const newScores = [...playerScores];
-      newScores[playerIndex] = { ...newScores[playerIndex], [category]: points };
-      setPlayerScores(newScores);
+      // Emit selected category and points to server to update scores for all players
+      socket.emit('scoreSelect', { category, points, playerIndex });
     }
   };
+  
 
   return (
     <div className="game-container">
