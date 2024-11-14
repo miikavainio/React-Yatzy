@@ -34,11 +34,12 @@ io.on('connection', (socket) => {
   });
 
   socket.on('rollDice', (selectedDice) => {
-    // Roll the dice and update gameState
     gameState.dice = gameState.dice.map((die, index) =>
       selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
     );
-    io.emit('gameState', gameState); // Broadcast the updated game state to all players
+    
+    console.log('Emitting game state:', gameState);  // Debug log
+    io.emit('gameState', gameState); // Broadcast the updated game state to all clients
   });
 
   socket.on('disconnect', () => {
