@@ -11,7 +11,7 @@ app.use(cors({ origin: 'https://react-yatzy.onrender.com', methods: ['GET', 'POS
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'https://react-yatzy.onrender.com', // Only allow requests from your client URL
+    origin: 'https://react-yatzy.onrender.com',
     methods: ['GET', 'POST']
   }
 });
@@ -22,7 +22,7 @@ let gameState = {
   players: [],
   currentTurn: 0,
   dice: [0, 0, 0, 0, 0],
-  scores: [{}, {}], // Initialize scores for two players
+  scores: [{}, {}],
 };
 
 io.on('connection', (socket) => {
@@ -30,39 +30,39 @@ io.on('connection', (socket) => {
 
   socket.on('joinGame', (username) => {
     gameState.players.push({ id: socket.id, name: username });
-    io.emit('gameState', gameState); // Broadcast updated game state
+    io.emit('gameState', gameState);
   });
 
   socket.on('rollDice', (selectedDice) => {
-    // Allow only the current player to roll
     const playerIndex = gameState.players.findIndex(player => player.id === socket.id);
     if (playerIndex !== gameState.currentTurn) {
       console.log(`Player ${socket.id} attempted to roll out of turn`);
       return;
     }
-  
-    // Perform the dice roll
     gameState.dice = gameState.dice.map((die, index) =>
       selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
     );
-  
-    io.emit('gameState', gameState); // Broadcast the updated game state
+    io.emit('gameState', gameState);
   });
 
   socket.on('endTurn', () => {
-    // Update the current turn
     gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
-  
-    // Reset the dice values to zeros
     gameState.dice = [0, 0, 0, 0, 0];
-    
-    io.emit('gameState', gameState); // Broadcast updated game state with reset dice
+    io.emit('gameState', gameState);
   });
 
   socket.on('scoreSelect', ({ category, points, playerIndex }) => {
     if (!gameState.scores[playerIndex][category]) {
       gameState.scores[playerIndex][category] = points;
-      io.emit('gameState', gameState); // Broadcast updated scores to all clients
+      io.emit('gameState', gameState);
+    }
+  });
+
+  socket.on('chatMessage', (message) => {
+    const player = gameState.players.find(p => p.id === socket.id);
+    if (player) {
+      const chatData = { playerName: player.name, message };
+      io.emit('chatMessage', chatData);
     }
   });
 
@@ -70,18 +70,17 @@ io.on('connection', (socket) => {
     console.log('A player disconnected:', socket.id);
     gameState.players = gameState.players.filter((p) => p.id !== socket.id);
 
-    // Check if all players have disconnected
     if (gameState.players.length === 0) {
       gameState = {
         players: [],
         currentTurn: 0,
         dice: [0, 0, 0, 0, 0],
-        scores: [{}, {}], // Reset scores for two players
+        scores: [{}, {}],
       };
       console.log('All players disconnected. Game state reset.');
     }
 
-    io.emit('gameState', gameState); // Broadcast updated game state
+    io.emit('gameState', gameState);
   });
 });
 
