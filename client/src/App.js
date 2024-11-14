@@ -20,14 +20,14 @@ function App() {
 
   useEffect(() => {
     socket.on('gameState', (state) => {
+      console.log('Received game state:', state);  // Debug log
       setGameState(state);
     });
-
+  
     return () => {
       socket.off('gameState');
     };
-}, []);
-
+  }, []);
 
   const joinGame = () => {
     socket.emit('joinGame', username);
