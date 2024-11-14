@@ -11,7 +11,7 @@ app.use(cors({ origin: 'https://react-yatzy.onrender.com', methods: ['GET', 'POS
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: 'https://react-yatzy.onrender.com', // Only allow requests from your client URL
     methods: ['GET', 'POST']
   }
 });

@@ -106,7 +106,6 @@ function App() {
           onChange={(e) => setUsername(e.target.value)}
         />
         <button className="button" onClick={joinGame}>Join Game</button>
-        <button onClick={sendPing}>Ping Server</button>
   
         {gameState && (
           <>
