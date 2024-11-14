@@ -26,31 +26,27 @@ let gameState = {
 };
 
 io.on('connection', (socket) => {
-  socket.on('ping', () => {
-    console.log('Ping received from', socket.id);
-    io.emit('pong', 'Pong from server');
-  });
+  console.log('A player connected:', socket.id);
 
   socket.on('joinGame', (username) => {
     gameState.players.push({ id: socket.id, name: username });
-    io.emit('gameState', gameState); // Broadcast the updated game state
+    io.emit('gameState', gameState); // Immediately broadcast the updated game state
   });
 
   socket.on('rollDice', (selectedDice) => {
     gameState.dice = gameState.dice.map((die, index) =>
       selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
     );
-    
-    console.log('Emitting game state:', gameState);  // Debug log
-    io.emit('gameState', gameState); // Broadcast the updated game state to all clients
+    io.emit('gameState', gameState); // Broadcast the new dice roll to all clients
   });
 
   socket.on('disconnect', () => {
     console.log('A player disconnected:', socket.id);
     gameState.players = gameState.players.filter((p) => p.id !== socket.id);
-    io.emit('gameState', gameState); // Update all clients with the new game state
+    io.emit('gameState', gameState); // Broadcast the updated player list after disconnect
   });
 });
+
 
 
 app.use(express.static(path.join(__dirname, '../client/build')));

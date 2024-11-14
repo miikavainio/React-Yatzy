@@ -21,14 +21,15 @@ function App() {
 
   useEffect(() => {
     socket.on('gameState', (state) => {
-      console.log('Received game state:', state);  // Debug log
-      setGameState(state);
+      console.log('Received game state:', state);  // Log to confirm each update
+      setGameState(state); // Update local game state with the server’s latest version
     });
   
     return () => {
       socket.off('gameState');
     };
   }, []);
+  
 
   const joinGame = () => {
     socket.emit('joinGame', username);
