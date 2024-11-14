@@ -62,19 +62,19 @@ function App() {
     );
   };
 
-  // useEffect(() => {
-  //   socket.on('pong', (message) => {
-  //     console.log(message);
-  //   });
+  useEffect(() => {
+    socket.on('pong', (message) => {
+      console.log(message);
+    });
 
-  //   return () => {
-  //     socket.off('pong');
-  //   };
-  // }, []);
+    return () => {
+      socket.off('pong');
+    };
+  }, []);
 
-  // const sendPing = () => {
-  //   socket.emit('ping');
-  // };
+  const sendPing = () => {
+    socket.emit('ping');
+  };
 
   const endTurn = () => {
     setRollCount(0);
