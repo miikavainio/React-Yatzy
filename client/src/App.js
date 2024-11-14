@@ -6,7 +6,6 @@ import Scoreboard from './Scoreboard';
 
 const socket = io('https://react-yatzy.onrender.com');
 
-
 function App() {
   const [gameState, setGameState] = useState(null);
   const [username, setUsername] = useState('');
@@ -95,7 +94,8 @@ function App() {
       socket.emit('scoreSelect', { category, points, playerIndex });
     }
   };
-  
+
+  const isCurrentPlayerTurn = currentPlayer === gameState?.players.findIndex(p => p.name === username);
 
   return (
     <div className="game-container">
@@ -107,11 +107,25 @@ function App() {
           onChange={(e) => setUsername(e.target.value)}
         />
         <button className="button" onClick={joinGame}>Join Game</button>
-  
+
         {gameState && (
           <>
             <div>Players: {gameState.players.map((p) => p.name).join(', ')}</div>
-            <h2>Current Turn: {gameState.players[currentPlayer].name}</h2>
+            
+            {/* Turn Indicator */}
+            <h2
+              style={{
+                backgroundColor: isCurrentPlayerTurn ? 'green' : 'red',
+                color: 'white',
+                padding: '10px',
+                borderRadius: '5px',
+              }}
+            >
+              {isCurrentPlayerTurn
+                ? 'Your turn'
+                : `${gameState.players[currentPlayer].name}'s turn`}
+            </h2>
+
             <div className="dice-container">
               {dice.map((die, index) => (
                 <div
@@ -126,7 +140,7 @@ function App() {
             <button
               className="button"
               onClick={rollDice}
-              disabled={rollCount >= 3 || scoreSelected || isRolling || currentPlayer !== gameState.players.findIndex(p => p.name === username)}
+              disabled={rollCount >= 3 || scoreSelected || isRolling || !isCurrentPlayerTurn}
             >
               {isRolling ? "Rolling..." : `Roll Dice (${3 - rollCount} rolls left)`}
             </button>
@@ -140,7 +154,7 @@ function App() {
           </>
         )}
       </div>
-  
+
       <div className="scoreboard-container">
         <Scoreboard
           dice={dice}
