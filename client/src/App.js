@@ -37,15 +37,22 @@ function App() {
   };
 
   const rollDice = () => {
-    if (rollCount < 3 && !scoreSelected && !isRolling) {
+    if (rollCount < 3 && !scoreSelected && !isRolling && currentPlayer === gameState.players.findIndex(p => p.name === username)) {
       setIsRolling(true);
       setHasRolled(true);
-      
-      // Emit selectedDice array to the server
-      socket.emit('rollDice', selectedDice);
-      
-      setRollCount(rollCount + 1);
-      setIsRolling(false);
+  
+      const rollInterval = setInterval(() => {
+        setDice(dice.map((die, index) =>
+          selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
+        ));
+      }, 100);
+  
+      setTimeout(() => {
+        clearInterval(rollInterval);
+        socket.emit('rollDice', selectedDice);
+        setRollCount(rollCount + 1);
+        setIsRolling(false);
+      }, 1000);
     }
   };
 
@@ -55,19 +62,19 @@ function App() {
     );
   };
 
-  useEffect(() => {
-    socket.on('pong', (message) => {
-      console.log(message);
-    });
+  // useEffect(() => {
+  //   socket.on('pong', (message) => {
+  //     console.log(message);
+  //   });
 
-    return () => {
-      socket.off('pong');
-    };
-  }, []);
+  //   return () => {
+  //     socket.off('pong');
+  //   };
+  // }, []);
 
-  const sendPing = () => {
-    socket.emit('ping');
-  };
+  // const sendPing = () => {
+  //   socket.emit('ping');
+  // };
 
   const endTurn = () => {
     setRollCount(0);
@@ -100,7 +107,7 @@ function App() {
         />
         <button className="button" onClick={joinGame}>Join Game</button>
         <button onClick={sendPing}>Ping Server</button>
-
+  
         {gameState && (
           <>
             <div>Players: {gameState.players.map((p) => p.name).join(', ')}</div>
@@ -116,16 +123,24 @@ function App() {
                 </div>
               ))}
             </div>
-            <button className="button" onClick={rollDice} disabled={rollCount >= 3 || scoreSelected || isRolling}>
+            <button
+              className="button"
+              onClick={rollDice}
+              disabled={rollCount >= 3 || scoreSelected || isRolling || currentPlayer !== gameState.players.findIndex(p => p.name === username)}
+            >
               {isRolling ? "Rolling..." : `Roll Dice (${3 - rollCount} rolls left)`}
             </button>
-            <button className="button" onClick={endTurn} disabled={!scoreSelected}>
+            <button
+              className="button"
+              onClick={endTurn}
+              disabled={!scoreSelected}
+            >
               End Turn
             </button>
           </>
         )}
       </div>
-
+  
       <div className="scoreboard-container">
         <Scoreboard
           dice={dice}

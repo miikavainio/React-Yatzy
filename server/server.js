@@ -34,19 +34,29 @@ io.on('connection', (socket) => {
   });
 
   socket.on('rollDice', (selectedDice) => {
-    // Perform dice roll on the server
+    // Allow only the current player to roll
+    const playerIndex = gameState.players.findIndex(player => player.id === socket.id);
+    if (playerIndex !== gameState.currentTurn) {
+      console.log(`Player ${socket.id} attempted to roll out of turn`);
+      return;
+    }
+  
+    // Perform the dice roll
     gameState.dice = gameState.dice.map((die, index) =>
       selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
     );
-
-    console.log('Broadcasting updated game state after dice roll:', gameState);
-    io.emit('gameState', gameState); // Broadcast updated game state to all clients
+  
+    io.emit('gameState', gameState); // Broadcast the updated game state
   });
 
   socket.on('endTurn', () => {
-    // Update current turn
+    // Update the current turn
     gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
-    io.emit('gameState', gameState); // Broadcast updated game state
+  
+    // Reset the dice values to zeros
+    gameState.dice = [0, 0, 0, 0, 0];
+    
+    io.emit('gameState', gameState); // Broadcast updated game state with reset dice
   });
 
   socket.on('scoreSelect', ({ category, points, playerIndex }) => {
@@ -55,7 +65,7 @@ io.on('connection', (socket) => {
       io.emit('gameState', gameState); // Broadcast updated scores to all clients
     }
   });
-  
+
   socket.on('disconnect', () => {
     console.log('A player disconnected:', socket.id);
     gameState.players = gameState.players.filter((p) => p.id !== socket.id);
