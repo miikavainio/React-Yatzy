@@ -192,7 +192,7 @@ function App() {
           dice={dice}
           onScoreSelect={handleScoreSelect}
           isDisabled={!hasRolled || scoreSelected}
-          currentPlayer={currentPlayer}
+          currentPlayer={gameState?.currentTurn}
           players={gameState?.players || []}
           playerScores={playerScores}
         />
