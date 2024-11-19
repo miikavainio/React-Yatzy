@@ -8,10 +8,6 @@
   padding: 20px;
 }
 
-h1 {
-  color: white;
-}
-
 .dice-container {
   display: flex;
   gap: 10px;
