@@ -1,5 +1,16 @@
 /* App.css */
 
+body {
+  background-image: url('./photos/yatzy.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: white; /* Ensures text is readable on the background */
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
 .container {
   display: flex;
   flex-direction: column;
@@ -74,7 +85,7 @@ h1 {
   align-items: center;
   height: 96vh; /* Full viewport height */
   padding: 20px;
-  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.6);
 }
 
 .game-content {

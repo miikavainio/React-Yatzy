@@ -25,21 +25,28 @@ let gameState = {
 };
 
 let chatMessages = []; // Store chat messages
+let clientPlayersMap = new Map(); // Map socket ID to list of players for each client
 
 io.on('connection', (socket) => {
-  console.log('A player connected:', socket.id);
+  console.log('A client connected:', socket.id);
 
   socket.on('joinGame', (username) => {
     if (gameState.players.length >= 4) {
-      // Notify the client that the game is full
       socket.emit('gameFull', 'The game is full. Please wait for a spot to open.');
       console.log(`Player ${username} attempted to join, but the game is full.`);
       return;
     }
 
-    // Add the new player and initialize their score
-    gameState.players.push({ id: socket.id, name: username });
+    // Add the new player to the game state
+    const newPlayer = { id: socket.id, name: username };
+    gameState.players.push(newPlayer);
     gameState.scores.push({}); // Add an empty score object for the new player
+
+    // Update the client-to-players mapping
+    if (!clientPlayersMap.has(socket.id)) {
+      clientPlayersMap.set(socket.id, []);
+    }
+    clientPlayersMap.get(socket.id).push(newPlayer);
 
     console.log(`Player ${username} joined the game.`);
     io.emit('gameState', gameState); // Broadcast updated game state
@@ -72,29 +79,37 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Handle chat messages
   socket.on('chatMessage', (message) => {
     const player = gameState.players.find(p => p.id === socket.id);
 
     if (!player) {
       console.log(`Chat message received from unknown player with socket ID: ${socket.id}`);
-      return; // Ignore messages from users who are not in the game
+      return;
     }
 
     const chatMessage = { username: player.name, text: message };
-    chatMessages.push(chatMessage); // Store the message
-    io.emit('chatMessage', chatMessage); // Broadcast the message to all players
+    chatMessages.push(chatMessage);
+    io.emit('chatMessage', chatMessage);
   });
 
   socket.on('disconnect', () => {
-    console.log('A player disconnected:', socket.id);
-    const playerIndex = gameState.players.findIndex(p => p.id === socket.id);
-    if (playerIndex !== -1) {
-      gameState.players.splice(playerIndex, 1); // Remove player from list
-      gameState.scores.splice(playerIndex, 1); // Remove their score
-    }
+    console.log(`Client with ID ${socket.id} disconnected.`);
+
+    // Remove all players associated with this client
+    const playersToRemove = clientPlayersMap.get(socket.id) || [];
+    playersToRemove.forEach(player => {
+      const playerIndex = gameState.players.findIndex(p => p.id === player.id);
+      if (playerIndex !== -1) {
+        gameState.players.splice(playerIndex, 1);
+        gameState.scores.splice(playerIndex, 1);
+      }
+    });
+
+    // Remove the client from the map
+    clientPlayersMap.delete(socket.id);
+
     console.log(`Updated player list: ${gameState.players.map(p => p.name).join(', ')}`);
-    io.emit('gameState', gameState);
+    io.emit('gameState', gameState); // Broadcast updated game state
   });
 });
 
