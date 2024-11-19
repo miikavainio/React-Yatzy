@@ -47,9 +47,8 @@ function App() {
   }, []);
 
   const joinGame = () => {
-    if (!username) return;
+    setErrorMessage(''); // Clear previous error message
     socket.emit('joinGame', username);
-    setUsername(''); // Clear input field after joining
   };
 
   const rollDice = () => {
@@ -103,7 +102,7 @@ function App() {
     }
   };
 
-  const currentTurnPlayer = gameState?.players[gameState?.currentTurn] || null;
+  const isCurrentPlayerTurn = currentPlayer === gameState?.players.findIndex(p => p.name === username);
 
   return (
     <div className="game-container">
@@ -145,15 +144,13 @@ function App() {
             <div style={{color: 'white'}}>Players: {gameState.players.map((p) => p.name).join(', ')}</div>
             <h2
               style={{
-                backgroundColor: currentTurnPlayer?.name === username ? 'green' : 'red',
+                backgroundColor: isCurrentPlayerTurn ? 'green' : 'red',
                 color: 'white',
                 padding: '10px',
                 borderRadius: '5px',
               }}
             >
-              {currentTurnPlayer?.name === username
-                ? 'Your turn'
-                : `${currentTurnPlayer?.name}'s turn`}
+              {isCurrentPlayerTurn ? 'Your turn' : `${gameState.players[currentPlayer].name}'s turn`}
             </h2>
 
             <div className="dice-container">
@@ -170,7 +167,7 @@ function App() {
             <button
               className="button"
               onClick={rollDice}
-              disabled={rollCount >= 3 || scoreSelected || isRolling || currentTurnPlayer?.name !== username}
+              disabled={rollCount >= 3 || scoreSelected || isRolling || !isCurrentPlayerTurn}
             >
               {isRolling ? "Rolling..." : `Roll Dice (${3 - rollCount} rolls left)`}
             </button>
@@ -192,7 +189,7 @@ function App() {
           dice={dice}
           onScoreSelect={handleScoreSelect}
           isDisabled={!hasRolled || scoreSelected}
-          currentPlayer={gameState?.currentTurn}
+          currentPlayer={currentPlayer}
           players={gameState?.players || []}
           playerScores={playerScores}
         />
