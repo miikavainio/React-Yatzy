@@ -31,7 +31,15 @@ io.on('connection', (socket) => {
   console.log('A player connected:', socket.id);
 
   socket.on('joinGame', (username) => {
+    if (gameState.players.length >= 4) {
+      // Notify the client that the game is full
+      socket.emit('gameFull', 'The game is full. Please wait for a spot to open.');
+      console.log(`Player ${username} attempted to join, but the game is full.`);
+      return;
+    }
+
     gameState.players.push({ id: socket.id, name: username });
+    console.log(`Player ${username} joined the game.`);
     io.emit('gameState', gameState); // Broadcast updated game state
   });
 
@@ -73,6 +81,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('A player disconnected:', socket.id);
     gameState.players = gameState.players.filter((p) => p.id !== socket.id);
+    console.log(`Updated player list: ${gameState.players.map(p => p.name).join(', ')}`);
     io.emit('gameState', gameState);
   });
 });

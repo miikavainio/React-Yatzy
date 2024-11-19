@@ -19,6 +19,7 @@ function App() {
 
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
+  const [errorMessage, setErrorMessage] = useState(''); // Error for when game is full
 
   useEffect(() => {
     socket.on('gameState', (state) => {
@@ -33,13 +34,20 @@ function App() {
       setChatMessages((prevMessages) => [...prevMessages, message]);
     });
 
+    // Listen for game full error
+    socket.on('gameFull', (message) => {
+        setErrorMessage(message);
+    });
+
     return () => {
       socket.off('gameState');
       socket.off('chatMessage');
+      socket.off('gameFull');
     };
   }, []);
 
   const joinGame = () => {
+    setErrorMessage(''); // Clear previous error message
     socket.emit('joinGame', username);
   };
 
