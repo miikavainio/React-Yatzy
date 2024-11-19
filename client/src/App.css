@@ -6,7 +6,7 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  color: white; /* Ensures text is readable on the background */
+  color: rgb(0, 0, 0); /* Ensures text is readable on the background */
   margin: 0;
   font-family: Arial, sans-serif;
 }
@@ -102,6 +102,7 @@ h1 {
   width: 30%;
   display: flex;
   align-items: flex-start; /* Align scoreboard to the top */
+  color: black;
 }
 
 .chat-container {
