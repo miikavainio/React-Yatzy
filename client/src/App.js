@@ -106,7 +106,7 @@ function App() {
 
   return (
     <div className="game-container">
-
+        <h1>Yatzy Game</h1>
             {/* Chat Box */}
       <div className="chat-container">
         <h3>Chat Room</h3>
@@ -129,13 +129,15 @@ function App() {
       </div>
 
       <div className="game-content">
-        <h1>Yatzy Game</h1>
+
         <input
           placeholder="Enter your name"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
         <button className="button" onClick={joinGame}>Join Game</button>
+
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         {gameState && (
           <>
