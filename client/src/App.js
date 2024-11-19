@@ -13,12 +13,12 @@ function App() {
   const [rollCount, setRollCount] = useState(0);
   const [hasRolled, setHasRolled] = useState(false);
   const [scoreSelected, setScoreSelected] = useState(false);
-  const [playerScores, setPlayerScores] = useState([{}, {}]);
+  const [playerScores, setPlayerScores] = useState([]);
   const [isRolling, setIsRolling] = useState(false);
 
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
-  const [errorMessage, setErrorMessage] = useState(''); // Error for when the game is full
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     socket.on('gameState', (state) => {
@@ -27,12 +27,10 @@ function App() {
       setPlayerScores(state.scores);
     });
 
-    // Listen for incoming chat messages
     socket.on('chatMessage', (message) => {
       setChatMessages((prevMessages) => [...prevMessages, message]);
     });
 
-    // Listen for game full error
     socket.on('gameFull', (message) => {
       setErrorMessage(message);
     });
@@ -47,7 +45,7 @@ function App() {
   const joinGame = () => {
     if (!username) return;
     socket.emit('joinGame', username);
-    setUsername(''); // Clear input field after joining
+    setUsername(''); // Clear the input field after joining
   };
 
   const rollDice = () => {
@@ -101,7 +99,8 @@ function App() {
     }
   };
 
-  const isCurrentPlayerTurn = gameState?.players[gameState?.currentTurn]?.name === username;
+  const currentPlayerName = gameState?.players[gameState?.currentTurn]?.name || '';
+  const isCurrentPlayerTurn = gameState?.currentTurn === gameState?.players.findIndex(p => p.name === currentPlayerName);
 
   return (
     <div className="game-container">
@@ -149,7 +148,7 @@ function App() {
                 borderRadius: '5px',
               }}
             >
-              {isCurrentPlayerTurn ? 'Your turn' : `${gameState.players[gameState.currentTurn]?.name}'s turn`}
+              {isCurrentPlayerTurn ? 'Your turn' : `${currentPlayerName}'s turn`}
             </h2>
 
             <div className="dice-container">
