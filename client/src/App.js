@@ -106,6 +106,28 @@ function App() {
 
   return (
     <div className="game-container">
+
+            {/* Chat Box */}
+      <div className="chat-container">
+        <h3>Chat Room</h3>
+        <div className="chat-box">
+          {chatMessages.map((msg, index) => (
+            <div key={index} className="chat-message">
+              <strong>{msg.username}:</strong> {msg.text}
+            </div>
+          ))}
+        </div>
+        <form onSubmit={sendChatMessage}>
+          <input
+            type="text"
+            placeholder="Type a message"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+
       <div className="game-content">
         <h1>Yatzy Game</h1>
         <input
@@ -117,7 +139,7 @@ function App() {
 
         {gameState && (
           <>
-            <div>Players: {gameState.players.map((p) => p.name).join(', ')}</div>
+            <div style={{color: 'white'}}>Players: {gameState.players.map((p) => p.name).join(', ')}</div>
             <h2
               style={{
                 backgroundColor: isCurrentPlayerTurn ? 'green' : 'red',
@@ -158,26 +180,7 @@ function App() {
         )}
       </div>
 
-      {/* Chat Box */}
-      <div className="chat-container">
-        <h3>Chat Room</h3>
-        <div className="chat-box">
-          {chatMessages.map((msg, index) => (
-            <div key={index} className="chat-message">
-              <strong>{msg.username}:</strong> {msg.text}
-            </div>
-          ))}
-        </div>
-        <form onSubmit={sendChatMessage}>
-          <input
-            type="text"
-            placeholder="Type a message"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-          />
-          <button type="submit">Send</button>
-        </form>
-      </div>
+
 
       <div className="scoreboard-container">
         <Scoreboard
