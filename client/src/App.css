@@ -8,6 +8,10 @@
   padding: 20px;
 }
 
+h1 {
+  color: white;
+}
+
 .dice-container {
   display: flex;
   gap: 10px;
@@ -25,6 +29,7 @@
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s;
+  background-color: white;
 }
 
 .die.selected {
@@ -115,3 +120,10 @@
   border-radius: 8px;
   margin-bottom: 10px;
 }
+
+.error-message {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+

@@ -19,8 +19,10 @@ function App() {
 
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
+  const [errorMessage, setErrorMessage] = useState(''); // For handling game full message
 
   useEffect(() => {
+    // Listen for game state updates
     socket.on('gameState', (state) => {
       setGameState(state);
       setDice(state.dice);
@@ -28,18 +30,25 @@ function App() {
       setPlayerScores(state.scores);
     });
 
-    // Listen for incoming chat messages
+    // Listen for chat messages
     socket.on('chatMessage', (message) => {
       setChatMessages((prevMessages) => [...prevMessages, message]);
+    });
+
+    // Listen for game full error
+    socket.on('gameFull', (message) => {
+      setErrorMessage(message);
     });
 
     return () => {
       socket.off('gameState');
       socket.off('chatMessage');
+      socket.off('gameFull');
     };
   }, []);
 
   const joinGame = () => {
+    setErrorMessage(''); // Clear previous error message
     socket.emit('joinGame', username);
   };
 
@@ -97,7 +106,27 @@ function App() {
   const isCurrentPlayerTurn = currentPlayer === gameState?.players.findIndex(p => p.name === username);
 
   return (
-    <div className="game-container">
+    <div className="container">
+      <div className="chat-container">
+        <h3>Chat Room</h3>
+        <div className="chat-box">
+          {chatMessages.map((msg, index) => (
+            <div key={index} className="chat-message">
+              <strong>{msg.username}:</strong> {msg.text}
+            </div>
+          ))}
+        </div>
+        <form onSubmit={sendChatMessage}>
+          <input
+            type="text"
+            placeholder="Type a message"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+
       <div className="game-content">
         <h1>Yatzy Game</h1>
         <input
@@ -106,6 +135,7 @@ function App() {
           onChange={(e) => setUsername(e.target.value)}
         />
         <button className="button" onClick={joinGame}>Join Game</button>
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         {gameState && (
           <>
@@ -148,38 +178,17 @@ function App() {
             </button>
           </>
         )}
-      </div>
 
-      {/* Chat Box */}
-      <div className="chat-container">
-        <h3>Chat Room</h3>
-        <div className="chat-box">
-          {chatMessages.map((msg, index) => (
-            <div key={index} className="chat-message">
-              <strong>{msg.username}:</strong> {msg.text}
-            </div>
-          ))}
-        </div>
-        <form onSubmit={sendChatMessage}>
-          <input
-            type="text"
-            placeholder="Type a message"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
+        <div className="scoreboard-container">
+          <Scoreboard
+            dice={dice}
+            onScoreSelect={handleScoreSelect}
+            isDisabled={!hasRolled || scoreSelected}
+            currentPlayer={currentPlayer}
+            players={gameState?.players || []}
+            playerScores={playerScores}
           />
-          <button type="submit">Send</button>
-        </form>
-      </div>
-
-      <div className="scoreboard-container">
-        <Scoreboard
-          dice={dice}
-          onScoreSelect={handleScoreSelect}
-          isDisabled={!hasRolled || scoreSelected}
-          currentPlayer={currentPlayer}
-          players={gameState?.players || []}
-          playerScores={playerScores}
-        />
+        </div>
       </div>
     </div>
   );
