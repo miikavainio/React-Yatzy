@@ -3,11 +3,12 @@
 .scoreboard {
   width: 100%;
   max-width: 400px;
-  margin: 20px auto;
+
   border: 2px solid #333;
   border-radius: 8px;
   padding: 10px;
   background-color: #f4f4f9;
+  margin-left: 100px;
 }
 
 .scoreboard h3 {

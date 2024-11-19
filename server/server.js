@@ -30,6 +30,7 @@ let clientPlayersMap = new Map(); // Map socket ID to list of players for each c
 io.on('connection', (socket) => {
   console.log('A client connected:', socket.id);
 
+  // Handle player joining the game
   socket.on('joinGame', (username) => {
     if (gameState.players.length >= 4) {
       socket.emit('gameFull', 'The game is full. Please wait for a spot to open.');
@@ -37,21 +38,21 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Add the new player to the game state
     const newPlayer = { id: socket.id, name: username };
     gameState.players.push(newPlayer);
     gameState.scores.push({}); // Add an empty score object for the new player
 
-    // Update the client-to-players mapping
+    // Map the client (socket) to the player(s) they create
     if (!clientPlayersMap.has(socket.id)) {
       clientPlayersMap.set(socket.id, []);
     }
     clientPlayersMap.get(socket.id).push(newPlayer);
 
     console.log(`Player ${username} joined the game.`);
-    io.emit('gameState', gameState); // Broadcast updated game state
+    io.emit('gameState', gameState); // Broadcast the updated game state
   });
 
+  // Handle rolling dice
   socket.on('rollDice', (selectedDice) => {
     const playerIndex = gameState.players.findIndex(player => player.id === socket.id);
     if (playerIndex !== gameState.currentTurn) {
@@ -66,12 +67,14 @@ io.on('connection', (socket) => {
     io.emit('gameState', gameState);
   });
 
+  // Handle ending a turn
   socket.on('endTurn', () => {
     gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
     gameState.dice = [0, 0, 0, 0, 0];
     io.emit('gameState', gameState);
   });
 
+  // Handle score selection
   socket.on('scoreSelect', ({ category, points, playerIndex }) => {
     if (!gameState.scores[playerIndex][category]) {
       gameState.scores[playerIndex][category] = points;
@@ -79,6 +82,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Handle chat messages
   socket.on('chatMessage', (message) => {
     const player = gameState.players.find(p => p.id === socket.id);
 
@@ -92,6 +96,7 @@ io.on('connection', (socket) => {
     io.emit('chatMessage', chatMessage);
   });
 
+  // Handle client disconnecting
   socket.on('disconnect', () => {
     console.log(`Client with ID ${socket.id} disconnected.`);
 
@@ -109,7 +114,7 @@ io.on('connection', (socket) => {
     clientPlayersMap.delete(socket.id);
 
     console.log(`Updated player list: ${gameState.players.map(p => p.name).join(', ')}`);
-    io.emit('gameState', gameState); // Broadcast updated game state
+    io.emit('gameState', gameState); // Broadcast the updated game state
   });
 });
 

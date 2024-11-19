@@ -12,20 +12,18 @@ function App() {
   const [selectedDice, setSelectedDice] = useState([]);
   const [rollCount, setRollCount] = useState(0);
   const [hasRolled, setHasRolled] = useState(false);
-  const [currentPlayer, setCurrentPlayer] = useState(0);
   const [scoreSelected, setScoreSelected] = useState(false);
   const [playerScores, setPlayerScores] = useState([{}, {}]);
   const [isRolling, setIsRolling] = useState(false);
 
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
-  const [errorMessage, setErrorMessage] = useState(''); // Error for when game is full
+  const [errorMessage, setErrorMessage] = useState(''); // Error for when the game is full
 
   useEffect(() => {
     socket.on('gameState', (state) => {
       setGameState(state);
       setDice(state.dice);
-      setCurrentPlayer(state.currentTurn);
       setPlayerScores(state.scores);
     });
 
@@ -36,7 +34,7 @@ function App() {
 
     // Listen for game full error
     socket.on('gameFull', (message) => {
-        setErrorMessage(message);
+      setErrorMessage(message);
     });
 
     return () => {
@@ -47,12 +45,13 @@ function App() {
   }, []);
 
   const joinGame = () => {
-    setErrorMessage(''); // Clear previous error message
+    if (!username) return;
     socket.emit('joinGame', username);
+    setUsername(''); // Clear input field after joining
   };
 
   const rollDice = () => {
-    if (rollCount < 3 && !scoreSelected && !isRolling && currentPlayer === gameState.players.findIndex(p => p.name === username)) {
+    if (rollCount < 3 && !scoreSelected && !isRolling) {
       setIsRolling(true);
       setHasRolled(true);
 
@@ -102,12 +101,13 @@ function App() {
     }
   };
 
-  const isCurrentPlayerTurn = currentPlayer === gameState?.players.findIndex(p => p.name === username);
+  const isCurrentPlayerTurn = gameState?.players[gameState?.currentTurn]?.name === username;
 
   return (
     <div className="game-container">
-        <h1>Yatzy Game</h1>
-            {/* Chat Box */}
+      <h1>Yatzy Game</h1>
+
+      {/* Chat Box */}
       <div className="chat-container">
         <h3>Chat Room</h3>
         <div className="chat-box">
@@ -129,7 +129,6 @@ function App() {
       </div>
 
       <div className="game-content">
-
         <input
           placeholder="Enter your name"
           value={username}
@@ -141,7 +140,7 @@ function App() {
 
         {gameState && (
           <>
-            <div style={{color: 'white'}}>Players: {gameState.players.map((p) => p.name).join(', ')}</div>
+            <div style={{ color: 'white' }}>Players: {gameState.players.map((p) => p.name).join(', ')}</div>
             <h2
               style={{
                 backgroundColor: isCurrentPlayerTurn ? 'green' : 'red',
@@ -150,7 +149,7 @@ function App() {
                 borderRadius: '5px',
               }}
             >
-              {isCurrentPlayerTurn ? 'Your turn' : `${gameState.players[currentPlayer].name}'s turn`}
+              {isCurrentPlayerTurn ? 'Your turn' : `${gameState.players[gameState.currentTurn]?.name}'s turn`}
             </h2>
 
             <div className="dice-container">
@@ -182,14 +181,12 @@ function App() {
         )}
       </div>
 
-
-
       <div className="scoreboard-container">
         <Scoreboard
           dice={dice}
           onScoreSelect={handleScoreSelect}
           isDisabled={!hasRolled || scoreSelected}
-          currentPlayer={currentPlayer}
+          currentPlayer={gameState?.currentTurn}
           players={gameState?.players || []}
           playerScores={playerScores}
         />
