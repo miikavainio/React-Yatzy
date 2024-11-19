@@ -1,3 +1,4 @@
+const { v4: uuidv4 } = require('uuid'); // For generating unique player IDs
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -21,11 +22,10 @@ let gameState = {
   players: [],
   currentTurn: 0,
   dice: [0, 0, 0, 0, 0],
-  scores: [], // Dynamically manage scores for all players
+  scores: [],
 };
 
-let chatMessages = []; // Store chat messages
-let clientPlayersMap = new Map(); // Map socket ID to list of players for each client
+let chatMessages = [];
 
 io.on('connection', (socket) => {
   console.log('A client connected:', socket.id);
@@ -37,25 +37,19 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Add the new player to the game state
-    const newPlayer = { id: socket.id, name: username };
+    const playerId = uuidv4(); // Generate a unique ID for the player
+    const newPlayer = { id: playerId, socketId: socket.id, name: username };
     gameState.players.push(newPlayer);
     gameState.scores.push({}); // Add an empty score object for the new player
-
-    // Update the client-to-players mapping
-    if (!clientPlayersMap.has(socket.id)) {
-      clientPlayersMap.set(socket.id, []);
-    }
-    clientPlayersMap.get(socket.id).push(newPlayer);
 
     console.log(`Player ${username} joined the game.`);
     io.emit('gameState', gameState); // Broadcast updated game state
   });
 
-  socket.on('rollDice', (selectedDice) => {
-    const playerIndex = gameState.players.findIndex(player => player.id === socket.id);
+  socket.on('rollDice', ({ playerId, selectedDice }) => {
+    const playerIndex = gameState.players.findIndex(player => player.id === playerId);
     if (playerIndex !== gameState.currentTurn) {
-      console.log(`Player ${socket.id} attempted to roll out of turn`);
+      console.log(`Player ${playerId} attempted to roll out of turn`);
       return;
     }
 
@@ -66,21 +60,25 @@ io.on('connection', (socket) => {
     io.emit('gameState', gameState);
   });
 
-  socket.on('endTurn', () => {
-    gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
-    gameState.dice = [0, 0, 0, 0, 0];
-    io.emit('gameState', gameState);
+  socket.on('endTurn', ({ playerId }) => {
+    const playerIndex = gameState.players.findIndex(player => player.id === playerId);
+    if (playerIndex === gameState.currentTurn) {
+      gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
+      gameState.dice = [0, 0, 0, 0, 0];
+      io.emit('gameState', gameState);
+    }
   });
 
-  socket.on('scoreSelect', ({ category, points, playerIndex }) => {
-    if (!gameState.scores[playerIndex][category]) {
+  socket.on('scoreSelect', ({ playerId, category, points }) => {
+    const playerIndex = gameState.players.findIndex(player => player.id === playerId);
+    if (playerIndex !== -1 && !gameState.scores[playerIndex][category]) {
       gameState.scores[playerIndex][category] = points;
       io.emit('gameState', gameState);
     }
   });
 
   socket.on('chatMessage', (message) => {
-    const player = gameState.players.find(p => p.id === socket.id);
+    const player = gameState.players.find(p => p.socketId === socket.id);
 
     if (!player) {
       console.log(`Chat message received from unknown player with socket ID: ${socket.id}`);
@@ -94,22 +92,16 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log(`Client with ID ${socket.id} disconnected.`);
-
-    // Remove all players associated with this client
-    const playersToRemove = clientPlayersMap.get(socket.id) || [];
+    const playersToRemove = gameState.players.filter(player => player.socketId === socket.id);
     playersToRemove.forEach(player => {
-      const playerIndex = gameState.players.findIndex(p => p.id === player.id);
-      if (playerIndex !== -1) {
-        gameState.players.splice(playerIndex, 1);
-        gameState.scores.splice(playerIndex, 1);
+      const index = gameState.players.findIndex(p => p.id === player.id);
+      if (index !== -1) {
+        gameState.players.splice(index, 1);
+        gameState.scores.splice(index, 1);
       }
     });
 
-    // Remove the client from the map
-    clientPlayersMap.delete(socket.id);
-
-    console.log(`Updated player list: ${gameState.players.map(p => p.name).join(', ')}`);
-    io.emit('gameState', gameState); // Broadcast updated game state
+    io.emit('gameState', gameState);
   });
 });
 
