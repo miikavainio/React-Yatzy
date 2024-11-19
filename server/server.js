@@ -1,4 +1,3 @@
-// server/server.js
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -22,7 +21,7 @@ let gameState = {
   players: [],
   currentTurn: 0,
   dice: [0, 0, 0, 0, 0],
-  scores: [{}, {}], // Initialize scores for two players
+  scores: [], // Dynamically manage scores for all players
 };
 
 let chatMessages = []; // Store chat messages
@@ -38,7 +37,10 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // Add the new player and initialize their score
     gameState.players.push({ id: socket.id, name: username });
+    gameState.scores.push({}); // Add an empty score object for the new player
+
     console.log(`Player ${username} joined the game.`);
     io.emit('gameState', gameState); // Broadcast updated game state
   });
@@ -49,11 +51,11 @@ io.on('connection', (socket) => {
       console.log(`Player ${socket.id} attempted to roll out of turn`);
       return;
     }
-  
+
     gameState.dice = gameState.dice.map((die, index) =>
       selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
     );
-  
+
     io.emit('gameState', gameState);
   });
 
@@ -73,6 +75,12 @@ io.on('connection', (socket) => {
   // Handle chat messages
   socket.on('chatMessage', (message) => {
     const player = gameState.players.find(p => p.id === socket.id);
+
+    if (!player) {
+      console.log(`Chat message received from unknown player with socket ID: ${socket.id}`);
+      return; // Ignore messages from users who are not in the game
+    }
+
     const chatMessage = { username: player.name, text: message };
     chatMessages.push(chatMessage); // Store the message
     io.emit('chatMessage', chatMessage); // Broadcast the message to all players
@@ -80,7 +88,11 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('A player disconnected:', socket.id);
-    gameState.players = gameState.players.filter((p) => p.id !== socket.id);
+    const playerIndex = gameState.players.findIndex(p => p.id === socket.id);
+    if (playerIndex !== -1) {
+      gameState.players.splice(playerIndex, 1); // Remove player from list
+      gameState.scores.splice(playerIndex, 1); // Remove their score
+    }
     console.log(`Updated player list: ${gameState.players.map(p => p.name).join(', ')}`);
     io.emit('gameState', gameState);
   });
