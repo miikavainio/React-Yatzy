@@ -101,6 +101,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log(`Client with ID ${socket.id} disconnected.`);
 
+    // Remove all players associated with this client
     const playersToRemove = clientPlayersMap.get(socket.id) || [];
     playersToRemove.forEach(player => {
       const playerIndex = gameState.players.findIndex(p => p.id === player.id);
@@ -111,6 +112,17 @@ io.on('connection', (socket) => {
     });
 
     clientPlayersMap.delete(socket.id);
+
+    // Reset the game state if all players have left
+    if (gameState.players.length === 0) {
+      gameState = {
+        players: [],
+        currentTurn: 0,
+        dice: [0, 0, 0, 0, 0],
+        scores: [],
+      };
+      console.log('All players have left. Game state has been reset.');
+    }
 
     console.log(`Updated player list: ${gameState.players.map(p => p.name).join(', ')}`);
     io.emit('gameState', gameState);
