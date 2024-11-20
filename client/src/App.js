@@ -100,7 +100,7 @@ function App() {
   };
 
   const currentPlayerName = gameState?.players[gameState?.currentTurn]?.name || '';
-  const isCurrentPlayerTurn = gameState?.currentTurn === gameState?.players.findIndex(p => p.name === currentPlayerName);
+  const isCurrentPlayerTurn = gameState?.players[gameState?.currentTurn]?.id === socket.id;
 
   return (
     <div className="game-container">
@@ -163,12 +163,12 @@ function App() {
               ))}
             </div>
             <button
-              className="button"
-              onClick={rollDice}
-              disabled={rollCount >= 3 || scoreSelected || isRolling || !isCurrentPlayerTurn}
-            >
-              {isRolling ? "Rolling..." : `Roll Dice (${3 - rollCount} rolls left)`}
-            </button>
+                className="button"
+                onClick={rollDice}
+                disabled={!isCurrentPlayerTurn || rollCount >= 3 || scoreSelected || isRolling}
+              >
+                {isRolling ? "Rolling..." : `Roll Dice (${3 - rollCount} rolls left)`}
+              </button>
             <button
               className="button"
               onClick={endTurn}
