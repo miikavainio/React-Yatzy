@@ -91,11 +91,13 @@ h1 {
 
 .game-container {
   display: flex;
+  flex-direction: row;
   justify-content: center;
   align-items: center;
   height: 96vh; /* Full viewport height */
   padding: 20px;
   background-color: rgba(0, 0, 0, 0.5);
+  flex-wrap: wrap; /* Allow content to wrap for smaller screens */
 }
 
 .game-content {
@@ -151,3 +153,48 @@ h1 {
   margin-top: 10px;
 }
 
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 18px;
+    padding: 5px 10px;
+  }
+
+  .game-container {
+    flex-direction: column; /* Stack content vertically */
+    align-items: center;
+    padding: 10px;
+  }
+
+  .game-content {
+    max-width: 100%;
+    padding: 10px;
+  }
+
+  .dice-container {
+    flex-wrap: wrap; /* Allow dice to wrap */
+    gap: 5px;
+  }
+
+  .die {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .scoreboard-container {
+    width: 100%;
+    margin-top: 15px;
+  }
+
+  .chat-container {
+    width: 90%;
+    margin: 10px auto;
+  }
+}
