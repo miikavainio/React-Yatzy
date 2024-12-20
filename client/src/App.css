@@ -161,6 +161,9 @@ h1 {
     padding: 5px 10px;
     left: 50%;
     position: absolute;
+    /* white-space: nowrap;
+    overflow: hidden; 
+    text-overflow: ellipsis; */
   }
 
   .game-container {
