@@ -167,14 +167,15 @@ h1 {
     flex-direction: column; /* Stack content vertically */
     align-items: center;
     padding: 80px 10px; /* Increase top padding for mobile view */
-    flex-wrap: nowrap;
-    margin-top: 75px;
+    /* flex-wrap: nowrap;
+    margin-top: 75px; */
   }
 
   .game-content {
     max-width: 100%;
     padding: 10px;
-    margin: 0; /* Remove left margin for better centering */
+    flex-wrap: nowrap;
+    margin-top: 75px;
   }
 
   .dice-container {
