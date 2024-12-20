@@ -196,6 +196,7 @@ h1 {
   .button {
     font-size: 14px;
     padding: 8px 16px;
+    margin-bottom: 2px;
   }
 
   .scoreboard-container {
@@ -231,5 +232,11 @@ h1 {
 
   .chat-container h3 {
     font-size: 1.2em; /* Adjust heading size */
+  }
+}
+
+@media (max-width: 400px) {
+  .game-container {
+    margin-top: 90px;
   }
 }
