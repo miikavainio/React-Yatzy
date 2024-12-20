@@ -139,7 +139,9 @@ function App() {
 
         {gameState && (
           <>
-            <div style={{ color: 'white' }}>Players: {gameState.players.map((p) => p.name).join(', ')}</div>
+            <div style={{ color: 'white', marginTop: '3px' }}>
+              Players: {gameState.players.map((p) => p.name).join(', ')}
+            </div>
             <h2
               style={{
                 backgroundColor: isCurrentPlayerTurn ? 'green' : 'red',
