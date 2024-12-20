@@ -154,22 +154,24 @@ h1 {
 }
 
 
-/* Responsive Styles */
+/* Responsive Styles for Mobile View */
 @media (max-width: 768px) {
   h1 {
-    font-size: 18px;
+    font-size: 34px;
     padding: 5px 10px;
+    left: 50%;
   }
 
   .game-container {
     flex-direction: column; /* Stack content vertically */
     align-items: center;
-    padding: 10px;
+    padding: 80px 10px; /* Increase top padding for mobile view */
   }
 
   .game-content {
     max-width: 100%;
     padding: 10px;
+    margin: 0; /* Remove left margin for better centering */
   }
 
   .dice-container {
@@ -189,12 +191,37 @@ h1 {
   }
 
   .scoreboard-container {
-    width: 100%;
+    width: 100%; /* Take the full width */
     margin-top: 15px;
+    display: flex;
+    justify-content: center; /* Center the scoreboard */
+    order: 1; /* Ensure it appears above the chat room */
+  }
+
+  .scoreboard {
+    width: 90%; /* Reduce width to fit smaller screens */
+    margin: 0 auto; /* Center the scoreboard */
+    padding: 10px;
+    font-size: 0.9em; /* Reduce font size for better readability */
   }
 
   .chat-container {
     width: 90%;
     margin: 10px auto;
+    order: 2; /* Place the chat room at the bottom */
+  }
+
+  .chat-box {
+    max-height: 200px; /* Reduce the height for better space usage */
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+
+  .chat-container h3 {
+    font-size: 1.2em; /* Adjust heading size */
   }
 }
