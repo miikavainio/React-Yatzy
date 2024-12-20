@@ -252,3 +252,9 @@ h1 {
     height: 133vh;
   }
 }
+
+@media (max-width: 389px) {
+  .game-container {
+    height: 111vh;
+  }
+}
