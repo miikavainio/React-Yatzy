@@ -172,6 +172,7 @@ h1 {
     padding: 80px 10px; /* Increase top padding for mobile view */
     flex-wrap: nowrap;
     margin-top: 75px;
+    height: 118vh;
   }
 
   .game-content {
@@ -235,8 +236,8 @@ h1 {
   }
 }
 
-@media (max-width: 400px) {
+/* @media (max-width: 400px) {
   .game-container {
     margin-top: 150px;
   }
-}
+} */
