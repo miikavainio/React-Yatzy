@@ -157,7 +157,7 @@ h1 {
 /* Responsive Styles for Mobile View */
 @media (max-width: 768px) {
   h1 {
-    font-size: 34px;
+    font-size: 30px;
     padding: 5px 10px;
     left: 50%;
     position: absolute;
