@@ -253,8 +253,8 @@ h1 {
   }
 }
 
-@media (max-width: 389px) {
+/* @media (max-width: 387px) {
   .game-container {
     height: 111vh;
   }
-}
+} */
