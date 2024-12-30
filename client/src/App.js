@@ -43,6 +43,10 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    checkGameEnd();
+  }, [playerScores]); // Add this here
+
   const joinGame = () => {
     if (!username) return;
     socket.emit("joinGame", username);
@@ -85,11 +89,8 @@ function App() {
     setScoreSelected(false);
     setSelectedDice([]);
     setDice([0, 0, 0, 0, 0]);
-
+  
     socket.emit("endTurn");
-    useEffect(() => {
-      checkGameEnd();
-    }, [playerScores]);
   };
 
   const handleScoreSelect = (category, points, playerIndex) => {
