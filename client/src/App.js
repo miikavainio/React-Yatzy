@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
-import io from "socket.io-client";
-import "./App.css";
-import Scoreboard from "./Scoreboard";
+import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
+import './App.css';
+import Scoreboard from './Scoreboard';
 
-const socket = io("https://react-yatzy.onrender.com");
+const socket = io('https://react-yatzy.onrender.com');
 
 function App() {
   const [gameState, setGameState] = useState(null);
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState('');
   const [dice, setDice] = useState([0, 0, 0, 0, 0]);
   const [selectedDice, setSelectedDice] = useState([]);
   const [rollCount, setRollCount] = useState(0);
@@ -17,40 +17,35 @@ function App() {
   const [isRolling, setIsRolling] = useState(false);
 
   const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [winner, setWinner] = useState(null); // New state for winner
+  const [chatInput, setChatInput] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    socket.on("gameState", (state) => {
+    socket.on('gameState', (state) => {
       setGameState(state);
       setDice(state.dice);
       setPlayerScores(state.scores);
     });
 
-    socket.on("chatMessage", (message) => {
+    socket.on('chatMessage', (message) => {
       setChatMessages((prevMessages) => [...prevMessages, message]);
     });
 
-    socket.on("gameFull", (message) => {
+    socket.on('gameFull', (message) => {
       setErrorMessage(message);
     });
 
     return () => {
-      socket.off("gameState");
-      socket.off("chatMessage");
-      socket.off("gameFull");
+      socket.off('gameState');
+      socket.off('chatMessage');
+      socket.off('gameFull');
     };
   }, []);
 
-  useEffect(() => {
-    checkGameEnd();
-  }, [playerScores]); // Add this here
-
   const joinGame = () => {
     if (!username) return;
-    socket.emit("joinGame", username);
-    setUsername(""); // Clear the input field after joining
+    socket.emit('joinGame', username);
+    setUsername(''); // Clear the input field after joining
   };
 
   const rollDice = () => {
@@ -59,16 +54,14 @@ function App() {
       setHasRolled(true);
 
       const rollInterval = setInterval(() => {
-        setDice(
-          dice.map((die, index) =>
-            selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
-          )
-        );
+        setDice(dice.map((die, index) =>
+          selectedDice.includes(index) ? die : Math.ceil(Math.random() * 6)
+        ));
       }, 100);
 
       setTimeout(() => {
         clearInterval(rollInterval);
-        socket.emit("rollDice", selectedDice);
+        socket.emit('rollDice', selectedDice);
         setRollCount(rollCount + 1);
         setIsRolling(false);
       }, 1000);
@@ -77,9 +70,7 @@ function App() {
 
   const toggleDiceSelection = (index) => {
     setSelectedDice((prevSelected) =>
-      prevSelected.includes(index)
-        ? prevSelected.filter((i) => i !== index)
-        : [...prevSelected, index]
+      prevSelected.includes(index) ? prevSelected.filter((i) => i !== index) : [...prevSelected, index]
     );
   };
 
@@ -89,62 +80,31 @@ function App() {
     setScoreSelected(false);
     setSelectedDice([]);
     setDice([0, 0, 0, 0, 0]);
-  
-    socket.emit("endTurn");
+
+    socket.emit('endTurn');
   };
 
   const handleScoreSelect = (category, points, playerIndex) => {
     if (hasRolled) {
       setScoreSelected(true);
-      socket.emit("scoreSelect", { category, points, playerIndex });
+      socket.emit('scoreSelect', { category, points, playerIndex });
     }
   };
 
   const sendChatMessage = (e) => {
     e.preventDefault();
     if (chatInput.trim()) {
-      socket.emit("chatMessage", chatInput);
-      setChatInput("");
+      socket.emit('chatMessage', chatInput);
+      setChatInput('');
     }
   };
 
-  const checkGameEnd = () => {
-    // Check if all players have filled their scoreboard
-    const allScoresFilled = gameState.players.every((_, index) =>
-      Object.values(playerScores[index] || {}).every((score) => score !== null)
-    );
-  
-    if (allScoresFilled) {
-      // Determine the winner
-      const scores = gameState.players.map((_, index) =>
-        Object.values(playerScores[index] || {}).reduce(
-          (total, score) => total + (score || 0),
-          0
-        )
-      );
-  
-      const highestScore = Math.max(...scores);
-      const winnerIndex = scores.indexOf(highestScore);
-  
-      // Declare the winner
-      setWinner(gameState.players[winnerIndex]?.name);
-    }
-  };
-
-  const currentPlayerName =
-    gameState?.players[gameState?.currentTurn]?.name || "";
-  const isCurrentPlayerTurn =
-    gameState?.players[gameState?.currentTurn]?.id === socket.id;
+  const currentPlayerName = gameState?.players[gameState?.currentTurn]?.name || '';
+  const isCurrentPlayerTurn = gameState?.players[gameState?.currentTurn]?.id === socket.id;
 
   return (
     <div className="game-container">
       <h1>Yatzy Game</h1>
-
-      {winner && (
-        <div className="winner-announcement">
-          <h2>🎉 Winner: {winner} 🎉</h2>
-        </div>
-      )}
 
       {/* Chat Box */}
       <div className="chat-container">
@@ -173,53 +133,49 @@ function App() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <button className="button" onClick={joinGame}>
-          Join Game
-        </button>
+        <button className="button" onClick={joinGame}>Join Game</button>
 
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         {gameState && (
           <>
-            <div style={{ color: "white", marginTop: "3px" }}>
-              Players: {gameState.players.map((p) => p.name).join(", ")}
+            <div style={{ color: 'white', marginTop: '3px' }}>
+              Players: {gameState.players.map((p) => p.name).join(', ')}
             </div>
             <h2
               style={{
-                backgroundColor: isCurrentPlayerTurn ? "green" : "red",
-                color: "white",
-                padding: "10px",
-                borderRadius: "5px",
+                backgroundColor: isCurrentPlayerTurn ? 'green' : 'red',
+                color: 'white',
+                padding: '10px',
+                borderRadius: '5px',
               }}
             >
-              {isCurrentPlayerTurn
-                ? "Your turn"
-                : `${currentPlayerName}'s turn`}
+              {isCurrentPlayerTurn ? 'Your turn' : `${currentPlayerName}'s turn`}
             </h2>
 
             <div className="dice-container">
               {dice.map((die, index) => (
                 <div
                   key={index}
-                  className={`die ${
-                    selectedDice.includes(index) ? "selected" : ""
-                  }`}
+                  className={`die ${selectedDice.includes(index) ? 'selected' : ''}`}
                   onClick={() => toggleDiceSelection(index)}
                 >
-                  {die > 0 ? die : "-"}
+                  {die > 0 ? die : '-'}
                 </div>
               ))}
             </div>
             <button
+                className="button"
+                onClick={rollDice}
+                disabled={!isCurrentPlayerTurn || rollCount >= 3 || scoreSelected || isRolling}
+              >
+                {isRolling ? "Rolling..." : `Roll Dice (${3 - rollCount} rolls left)`}
+              </button>
+            <button
               className="button"
-              onClick={rollDice}
-              disabled={
-                !isCurrentPlayerTurn || rollCount >= 3 || scoreSelected || isRolling
-              }
+              onClick={endTurn}
+              disabled={!scoreSelected}
             >
-              {isRolling ? "Rolling..." : `Roll Dice (${3 - rollCount} rolls left)`}
-            </button>
-            <button className="button" onClick={endTurn} disabled={!scoreSelected}>
               End Turn
             </button>
           </>
@@ -227,17 +183,17 @@ function App() {
       </div>
 
       <div className="scoreboard-container">
-      <Scoreboard
-        dice={dice}
-        onScoreSelect={handleScoreSelect}
-        isDisabled={!hasRolled || scoreSelected}
-        currentPlayer={gameState?.currentTurn}
-        players={gameState?.players || []}
-        playerScores={playerScores}
-      />
-    </div>    
-    </div>  
-    );
+        <Scoreboard
+          dice={dice}
+          onScoreSelect={handleScoreSelect}
+          isDisabled={!hasRolled || scoreSelected}
+          currentPlayer={gameState?.currentTurn}
+          players={gameState?.players || []}
+          playerScores={playerScores}
+        />
+      </div>
+    </div>
+  );
 }
 
 export default App;
