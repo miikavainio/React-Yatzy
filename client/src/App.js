@@ -87,7 +87,9 @@ function App() {
     setDice([0, 0, 0, 0, 0]);
 
     socket.emit("endTurn");
-    checkGameEnd(); // Check if the game has ended
+    useEffect(() => {
+      checkGameEnd();
+    }, [playerScores]);
   };
 
   const handleScoreSelect = (category, points, playerIndex) => {
@@ -107,21 +109,23 @@ function App() {
 
   const checkGameEnd = () => {
     // Check if all players have filled their scoreboard
-    const allScoresFilled = gameState.players.every((player, index) =>
+    const allScoresFilled = gameState.players.every((_, index) =>
       Object.values(playerScores[index] || {}).every((score) => score !== null)
     );
-
+  
     if (allScoresFilled) {
       // Determine the winner
-      const scores = gameState.players.map((player, index) =>
+      const scores = gameState.players.map((_, index) =>
         Object.values(playerScores[index] || {}).reduce(
           (total, score) => total + (score || 0),
           0
         )
       );
-
+  
       const highestScore = Math.max(...scores);
       const winnerIndex = scores.indexOf(highestScore);
+  
+      // Declare the winner
       setWinner(gameState.players[winnerIndex]?.name);
     }
   };
